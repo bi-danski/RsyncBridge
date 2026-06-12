@@ -1,22 +1,19 @@
-This is a Kotlin Multiplatform project targeting Desktop (JVM).
+## RsyncBridge
 
-* [/shared](./shared/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./shared/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./shared/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./shared/src/jvmMain/kotlin)
-    folder is the appropriate location.
+**Minimalistic Desktop GUI Application** that bridges iOS (jailbroken) with desktop for faster single/multiple file backups.
+Built with Kotlin + Jetpack Compose + rsync.
 
-### Running the apps
 
-Use the run configurations provided by the run widget in your IDE's toolbar. You can also use these commands and options:
+> **Features in Development:** Remote & Local connection support for iOS, mac, windows & Android.
+> Subject to change as it supports only local (USB) connection. Stability is semi-guaranteed.
+> Use for evaluation purposes only.
 
-- Desktop app:
-  - Hot reload: `./gradlew :desktopApp:hotRun --auto`
-  - Standard run: `./gradlew :desktopApp:run`
+### Contribution
+Contributions are welcomed! Please open issues or pull requests.
 
----
+### License
+Project is licensed under the MIT License. See **LICENSE** for details.
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+
+### Reference Documentation
+[Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
