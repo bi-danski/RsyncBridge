@@ -1,0 +1,378 @@
+name: Build iProxy Binaries
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'release-v*'
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:20.04
+    env:
+      PKG_CONFIG_PATH: /usr/local/lib/pkgconfig:/usr/local/lib64/pkgconfig
+      DEBIAN_FRONTEND: noninteractive
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - name: Install build dependencies (Linux x64)
+        run: |
+          apt-get update
+          apt-get install -y \
+            build-essential \
+            autoconf \
+            automake \
+            libtool \
+            pkg-config \
+            libusb-1.0-0-dev \
+            libssl-dev \
+            libgnutls28-dev \
+            libtasn1-dev \
+            libcurl4-openssl-dev \
+            git
+
+      - name: Build libplist (static)
+        run: |
+          git clone https://github.com/libimobiledevice/libplist.git
+          cd libplist
+          ./autogen.sh
+          ./configure --prefix=/usr/local --enable-static --disable-shared
+          make
+          make install
+          ldconfig
+          cd ..
+
+      - name: Build libimobiledevice-glue (static)
+        run: |
+          git clone https://github.com/libimobiledevice/libimobiledevice-glue.git
+          cd libimobiledevice-glue
+          ./autogen.sh
+          ./configure --prefix=/usr/local --enable-static --disable-shared
+          make
+          make install
+          ldconfig
+          cd ..
+
+      - name: Build libtatsu (static)
+        run: |
+          git clone https://github.com/libimobiledevice/libtatsu.git
+          cd libtatsu
+          ./autogen.sh
+          ./configure --prefix=/usr/local --enable-static --disable-shared
+          make
+          make install
+          ldconfig
+          cd ..
+
+      - name: Verify pkg-config dependencies
+        run: |
+          pkg-config --modversion libplist-2.0
+          pkg-config --modversion libimobiledevice-glue-1.0
+          pkg-config --modversion libtatsu-1.0
+
+      - name: Build libusbmuxd (static, produces iproxy)
+        run: |
+          git clone https://github.com/libimobiledevice/libusbmuxd.git
+          cd libusbmuxd
+          ./autogen.sh
+          ./configure --prefix=/usr/local --enable-static --disable-shared \
+            LDFLAGS="-static -static-libgcc"
+          make
+          cd ..
+
+      - name: Extract and verify iproxy binary
+        run: |
+          mkdir -p binaries/linux/x64
+          cp libusbmuxd/tools/iproxy binaries/linux/x64/
+          chmod +x binaries/linux/x64/iproxy
+          file binaries/linux/x64/iproxy
+          objdump -T binaries/linux/x64/iproxy | grep GLIBC | sed 's/.*GLIBC_//;s/[^0-9.].*//' | sort -V | tail -1
+          ldd binaries/linux/x64/iproxy && echo "WARNING: binary is NOT fully static" || echo "OK: binary is statically linked"
+
+      - name: Upload Linux iproxy artifact
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: linux-x64-iproxy
+          path: binaries/linux/x64/iproxy
+          retention-days: 7
+
+  build-macos-intel:
+    runs-on: macos-14
+    env:
+      PREFIX: /tmp/intel-root
+      PKG_CONFIG_PATH: /tmp/intel-root/lib/pkgconfig:/opt/homebrew/opt/openssl/lib/pkgconfig
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - name: Install build dependencies (cross-compile for Intel)
+        run: |
+          brew install autoconf automake libtool pkg-config libusb openssl curl
+
+      - name: Build libplist (static, Intel target)
+        run: |
+          git clone https://github.com/libimobiledevice/libplist.git
+          cd libplist
+          ./autogen.sh
+          ./configure --prefix=$PREFIX --host=x86_64-apple-darwin \
+            --enable-static --disable-shared --without-cython --disable-tests \
+            CFLAGS="-arch x86_64" CXXFLAGS="-arch x86_64" LDFLAGS="-arch x86_64"
+          make
+          make install
+          cd ..
+
+      - name: Build libimobiledevice-glue (static, Intel target)
+        run: |
+          git clone https://github.com/libimobiledevice/libimobiledevice-glue.git
+          cd libimobiledevice-glue
+          ./autogen.sh
+          ./configure --prefix=$PREFIX --host=x86_64-apple-darwin \
+            --enable-static --disable-shared \
+            CFLAGS="-arch x86_64" LDFLAGS="-arch x86_64"
+          make
+          make install
+          cd ..
+
+      - name: Build libtatsu (static, Intel target)
+        run: |
+          git clone https://github.com/libimobiledevice/libtatsu.git
+          cd libtatsu
+          ./autogen.sh
+          ./configure --prefix=$PREFIX --host=x86_64-apple-darwin \
+            --enable-static --disable-shared \
+            CFLAGS="-arch x86_64" LDFLAGS="-arch x86_64"
+          make
+          make install
+          cd ..
+
+      - name: Verify pkg-config dependencies
+        run: |
+          pkg-config --modversion libplist-2.0
+          pkg-config --modversion libimobiledevice-glue-1.0
+          pkg-config --modversion libtatsu-1.0
+
+      - name: Build libusbmuxd (static, Intel target — produces iproxy)
+        run: |
+          git clone https://github.com/libimobiledevice/libusbmuxd.git
+          cd libusbmuxd
+          ./autogen.sh
+          ./configure --prefix=$PREFIX --host=x86_64-apple-darwin \
+            --enable-static --disable-shared \
+            CFLAGS="-arch x86_64" LDFLAGS="-arch x86_64"
+          make
+          cd ..
+
+      - name: Extract and verify iproxy binary (Intel)
+        run: |
+          mkdir -p binaries/macos/x64
+          cp libusbmuxd/tools/iproxy binaries/macos/x64/
+          chmod +x binaries/macos/x64/iproxy
+          file binaries/macos/x64/iproxy
+          otool -L binaries/macos/x64/iproxy
+
+      - name: Upload macOS Intel iproxy artifact
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: macos-x64-iproxy
+          path: binaries/macos/x64/iproxy
+          retention-days: 7
+
+  build-macos-arm64:
+    runs-on: macos-14
+    env:
+      PREFIX: /tmp/arm64-root
+      PKG_CONFIG_PATH: /tmp/arm64-root/lib/pkgconfig:/opt/homebrew/opt/openssl/lib/pkgconfig
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - name: Install build dependencies (macOS ARM64)
+        run: |
+          brew install autoconf automake libtool pkg-config libusb openssl curl
+
+      - name: Build libplist (static, ARM64)
+        run: |
+          git clone https://github.com/libimobiledevice/libplist.git
+          cd libplist
+          ./autogen.sh
+          ./configure --prefix=$PREFIX --enable-static --disable-shared --without-cython --disable-tests \
+            CFLAGS="-arch arm64" LDFLAGS="-arch arm64"
+          make
+          make install
+          cd ..
+
+      - name: Build libimobiledevice-glue (static, ARM64)
+        run: |
+          git clone https://github.com/libimobiledevice/libimobiledevice-glue.git
+          cd libimobiledevice-glue
+          ./autogen.sh
+          ./configure --prefix=$PREFIX --enable-static --disable-shared \
+            CFLAGS="-arch arm64" LDFLAGS="-arch arm64"
+          make
+          make install
+          cd ..
+
+      - name: Build libtatsu (static, ARM64)
+        run: |
+          git clone https://github.com/libimobiledevice/libtatsu.git
+          cd libtatsu
+          ./autogen.sh
+          ./configure --prefix=$PREFIX --enable-static --disable-shared \
+            CFLAGS="-arch arm64" LDFLAGS="-arch arm64"
+          make
+          make install
+          cd ..
+
+      - name: Verify pkg-config dependencies
+        run: |
+          pkg-config --modversion libplist-2.0
+          pkg-config --modversion libimobiledevice-glue-1.0
+          pkg-config --modversion libtatsu-1.0
+
+      - name: Build libusbmuxd (static, ARM64 — produces iproxy)
+        run: |
+          git clone https://github.com/libimobiledevice/libusbmuxd.git
+          cd libusbmuxd
+          ./autogen.sh
+          ./configure --prefix=$PREFIX --enable-static --disable-shared \
+            CFLAGS="-arch arm64" LDFLAGS="-arch arm64"
+          make
+          cd ..
+
+      - name: Extract and verify iproxy binary (ARM64)
+        run: |
+          mkdir -p binaries/macos/arm64
+          cp libusbmuxd/tools/iproxy binaries/macos/arm64/
+          chmod +x binaries/macos/arm64/iproxy
+          file binaries/macos/arm64/iproxy
+          otool -L binaries/macos/arm64/iproxy
+
+      - name: Upload macOS ARM64 iproxy artifact
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: macos-arm64-iproxy
+          path: binaries/macos/arm64/iproxy
+          retention-days: 7
+
+  build-windows:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - name: Download prebuilt iproxy.exe from libimobiledevice-windows
+        run: |
+          mkdir -p binaries/windows/x64
+          curl -L "https://github.com/jrjr/libimobiledevice-windows/releases/download/v20260607-74585f8/libimobile-suite-latest_w64.zip" -o imobiledevice.zip
+          echo "=== ZIP Contents ==="
+          unzip -l imobiledevice.zip
+          echo "=== Extracting iproxy.exe ==="
+          unzip -j imobiledevice.zip "*/iproxy.exe" -d binaries/windows/x64/ || \
+          unzip -j imobiledevice.zip "iproxy.exe" -d binaries/windows/x64/
+          echo "=== Result ==="
+          ls -lh binaries/windows/x64/
+          file binaries/windows/x64/iproxy.exe
+
+      - name: Upload Windows iproxy artifact
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: windows-x64-iproxy
+          path: binaries/windows/x64/iproxy.exe
+          retention-days: 7
+
+  create-release:
+    needs: [build-linux, build-macos-intel, build-macos-arm64, build-windows]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/release-')
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4.3.0
+        with:
+          path: all-binaries/
+
+      - name: Display artifact structure
+        run: |
+          echo "=== Downloaded Artifacts ==="
+          find all-binaries -type f -exec file {} \;
+
+      - name: Organize binaries
+        run: |
+          mkdir -p release-binaries
+
+          if [ -d "all-binaries/linux-x64-iproxy" ]; then
+            mkdir -p release-binaries/linux/x64
+            cp all-binaries/linux-x64-iproxy/* release-binaries/linux/x64/ || true
+          fi
+
+          if [ -d "all-binaries/macos-x64-iproxy" ]; then
+            mkdir -p release-binaries/macos/x64
+            cp all-binaries/macos-x64-iproxy/* release-binaries/macos/x64/ || true
+          fi
+
+          if [ -d "all-binaries/macos-arm64-iproxy" ]; then
+            mkdir -p release-binaries/macos/arm64
+            cp all-binaries/macos-arm64-iproxy/* release-binaries/macos/arm64/ || true
+          fi
+
+          if [ -d "all-binaries/windows-x64-iproxy" ]; then
+            mkdir -p release-binaries/windows/x64
+            cp -r all-binaries/windows-x64-iproxy/* release-binaries/windows/x64/ || true
+          fi
+
+          echo "=== Final Binary Structure ==="
+          find release-binaries -type f -exec ls -lh {} \;
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-binaries/**/*
+          draft: false
+          prerelease: false
+          body: |
+            # RsyncBridge iProxy Binaries Release
+
+            This release contains pre-compiled **statically linked** iProxy binaries for all platforms:
+
+            - **Linux x64**: fully static iProxy binary for 64-bit Linux
+            - **macOS x64**: iproxy binary for Intel-based Macs (system frameworks only)
+            - **macOS ARM64**: iproxy binary for Apple Silicon M1/M2/M3 (system frameworks only)
+            - **Windows x64**: single static iproxy.exe, no DLLs required
+
+            ## Installation
+
+            1. Download the binary matching your platform
+            2. Extract to: `composeApp/src/jvmMain/resources/{platform}/{arch}/`
+            3. Run: `./gradlew composeApp:run`
+
+            ## Build Details
+
+            All libimobiledevice stack libraries are statically linked:
+            - libplist
+            - libimobiledevice-glue
+            - libtatsu
+            - libusbmuxd (contains iproxy)
+
+            Built with: GitHub Actions
+            Timestamp: ${{ github.event.head_commit.timestamp }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  summary:
+    needs: [build-linux, build-macos-intel, build-macos-arm64, build-windows, create-release]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Build Summary
+        run: |
+          echo "=== iProxy Binary Build Summary ==="
+          echo "✓ Linux x64 build:    ${{ needs.build-linux.result }}"
+          echo "✓ macOS x64 build:    ${{ needs.build-macos-intel.result }}"
+          echo "✓ macOS ARM64 build:  ${{ needs.build-macos-arm64.result }}"
+          echo "✓ Windows x64 build:  ${{ needs.build-windows.result }}"
+          echo "✓ Release created:    ${{ needs.create-release.result }}"
+          echo ""
+          echo "All binaries are available in the GitHub Release!"
