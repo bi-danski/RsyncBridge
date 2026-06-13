@@ -3,7 +3,7 @@ package org.me2you.rsyncbridge.core.logger
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-@Suppress("unused")
+//@Suppress("unused")
 class SyncLogger(clazz: Class<*>) {
     private val logger: Logger = LoggerFactory.getLogger(clazz)
 

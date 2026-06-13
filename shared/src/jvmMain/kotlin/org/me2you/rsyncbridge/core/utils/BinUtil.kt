@@ -27,7 +27,7 @@ object BinUtil{
 
     fun resolveBinaryPath(platform: String, arch: String, binaryName: String): String {
         val resourcesDir = File(System.getProperty("user.dir"))
-            .resolve("composeApp/src/jvmMain/resources")
+            .resolve("shared/src/jvmMain/resources")
             .resolve(platform)
             .resolve(arch)
             .resolve(binaryName)

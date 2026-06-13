@@ -42,7 +42,7 @@ object KeyRingProvider {
                 val password = generatePassword()
                 fallbackFile.writeText(String(password))
                 fallbackFile.setReadable(false, false)
-                fallbackFile.setReadable(true, true)
+                fallbackFile.setReadable(true, false)
                 fallbackFile.setWritable(false, false)
                 password
             }
