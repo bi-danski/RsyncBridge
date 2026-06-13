@@ -1,0 +1,56 @@
+-dontwarn java.lang.invoke.**
+-dontwarn javax.management.**
+-dontwarn java.nio.Buffer
+-dontwarn java.nio.file.**
+-dontwarn javax.swing.**
+-dontwarn java.awt.**
+-dontwarn sun.font.**
+-dontskipnonpubliclibraryclasses
+-dontwarn ch.qos.logback.classic.helpers.**
+-dontwarn ch.qos.logback.classic.selector.servlet.**
+-dontwarn ch.qos.logback.classic.servlet.**
+-dontwarn ch.qos.logback.classic.ViewStatusMessagesServlet
+-dontwarn ch.qos.logback.core.boolex.JaninoEventEvaluatorBase
+-dontwarn ch.qos.logback.core.joran.conditional.**
+-dontwarn ch.qos.logback.core.net.**
+-dontwarn ch.qos.logback.core.status.ViewStatusMessagesServletBase
+-dontwarn io.github.oshai.kotlinlogging.**
+-dontwarn kotlinx.coroutines.slf4j.**
+-dontwarn kotlin.**
+-dontwarn org.bouncycastle.**
+-dontwarn com.sun.jna.**
+-dontwarn pt.davidafsilva.apple.**
+-dontwarn org.freedesktop.dbus.**
+-dontwarn com.github.javakeyring.**
+-dontwarn androidx.datastore.**
+-dontwarn com.google.protobuf.**
+-dontwarn org.freedesktop.dbus.**
+-dontwarn org.jetbrains.**
+
+-keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod
+-keepclassmembers class ch.qos.logback.** { *; }
+-keepclassmembers class org.koin.** { @org.koin.core.annotation.** *; }
+-keepclassmembernames class kotlinx.** { volatile <fields>; }
+
+-adaptresourcefilenames
+-adaptresourcefilecontents META-INF/MANIFEST.MF
+
+-keepclassmembers class * { *** Companion; }
+-keepnames class kotlinx.** { *; }
+-keep interface kotlin.jvm.functions.** { *; }
+
+-keep class kotlin.** { *; }
+-keep class kotlinx.** { *; }
+-keep class com.github.javakeyring.** { *; }
+-keep class ch.qos.logback.** { *; }
+-keep class org.slf4j.** { *; }
+-keep class org.koin.** { *; }
+-keep class org.bouncycastle.** { *; }
+-keep class net.schmizz.** { *; }
+-keep class com.hierynomus.** { *; }
+-keep class net.i2p.crypto.** { *; }
+-keep class com.google.protobuf.** { *; }
+-keep class androidx.datastore.** { *; }
+-keep class com.sun.jna.** { *; }
+-keep class org.me2you.rsyncbridge.** { *; }
+-keep class org.freedesktop.dbus.** { *; }

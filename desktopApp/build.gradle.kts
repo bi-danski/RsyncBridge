@@ -21,6 +21,19 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "org.me2you.rsyncbridge"
             packageVersion = "1.0.0"
+            jvmArgs += listOf(
+                "-Djna.library.path=/usr/lib/x86_64-linux-gnu",
+                "-Djava.library.path=/usr/lib/x86_64-linux-gnu"
+            )
+        }
+
+        buildTypes.release {
+            proguard {
+                isEnabled = true
+                optimize.set(false)
+                obfuscate.set(true)
+                configurationFiles.from(project.file("proguard-rules.pro"))
+            }
         }
     }
 }

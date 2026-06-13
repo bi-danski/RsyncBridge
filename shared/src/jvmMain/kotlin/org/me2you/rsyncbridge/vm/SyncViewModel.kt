@@ -27,7 +27,6 @@ class SyncViewModel(
     private val fileManager: FileManager
 ) : ViewModel() {
 
-//    fun getFileManager() = fileManager
     private var logAppender: LogAppender? = null
     private var activeSyncCoroutine: Job? = null
 
@@ -47,19 +46,25 @@ class SyncViewModel(
     val syncMode: StateFlow<SyncMode> = _syncMode.asStateFlow()
 
     init {
-        val rootLogger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger
-        logAppender = LogAppender { viewModelScope.launch(Dispatchers.Main) { _systemLogs.value += it } }
-            .also {
-                it.context = rootLogger.loggerContext
-                it.start()
-                rootLogger.addAppender(it)
-            }
+        val rootLogger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)
+        if (rootLogger is ch.qos.logback.classic.Logger) {
+            logAppender = LogAppender { viewModelScope.launch(Dispatchers.Main) { _systemLogs.value += it } }
+                .also {
+                    it.context = rootLogger.loggerContext
+                    it.start()
+                    rootLogger.addAppender(it)
+                }
+        } else {
+            logger().warn { "SyncViewModel:: Logback not yet initialized, log appender not attached" }
+        }
     }
 
     override fun onCleared() {
         super.onCleared()
-        val rootLogger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger
-        logAppender?.let { rootLogger.detachAppender(it) }
+        val rootLogger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)
+        if (rootLogger is ch.qos.logback.classic.Logger) {
+            logAppender?.let { rootLogger.detachAppender(it) }
+        }
     }
 
     private fun updateSyncJob(transform: (SyncJob) -> SyncJob) {
