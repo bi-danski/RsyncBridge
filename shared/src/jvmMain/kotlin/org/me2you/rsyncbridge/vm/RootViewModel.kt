@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.me2you.rsyncbridge.sync.IProxyService
 import org.me2you.rsyncbridge.sync.SSHService
+import org.me2you.rsyncbridge.ui.state.UiState
 import kotlin.time.Duration.Companion.milliseconds
 
 class RootViewModel(
@@ -26,18 +27,21 @@ class RootViewModel(
     private val _isProxyConnected = MutableStateFlow(false)
     val isProxyConnected: StateFlow<Boolean> = _isProxyConnected.asStateFlow()
 
+    private val _uiState: MutableStateFlow<UiState> = MutableStateFlow<UiState>(UiState.Idle)
+    val uiState: StateFlow<UiState> = _uiState.asStateFlow()
+
     private var sshMonitorJob: Job? = null
     private var proxyMonitorJob: Job? = null
 
     fun pairMyIOS() {
         viewModelScope.launch(Dispatchers.IO) {
             sshService.triggerInit()
-            iProxyService.startIproxy()
+            iProxyService.startIProxy()
             delay(350.milliseconds)
 
             val connected = sshService.connect()
             if (!connected) {
-                iProxyService.stopIproxy()
+                iProxyService.stopIProxy()
                 return@launch
             }
             monitorConnection()
@@ -49,7 +53,7 @@ class RootViewModel(
             sshMonitorJob?.cancel()
             proxyMonitorJob?.cancel()
             sshService.disconnect()
-            iProxyService.stopIproxy()
+            iProxyService.stopIProxy()
             _isSshConnected.value = false
             _isProxyConnected.value = false
         }
@@ -59,12 +63,16 @@ class RootViewModel(
         sshMonitorJob?.cancel()
         proxyMonitorJob?.cancel()
 
-        proxyMonitorJob = iProxyService.monitorConnection()
+        proxyMonitorJob = iProxyService.monitorIProxyConnection()
             .onEach { _isProxyConnected.value = it }
             .launchIn(viewModelScope)
 
-        sshMonitorJob = sshService.monitorConnection()
+        sshMonitorJob = sshService.monitorSshConnection()
             .onEach { _isSshConnected.value = it }
             .launchIn(viewModelScope)
+    }
+
+    fun resetUiState(){
+        _uiState.value = UiState.Idle
     }
 }

@@ -8,14 +8,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import org.me2you.rsyncbridge.core.logger.LogAppender
-import org.me2you.rsyncbridge.core.utils.logger
 import org.me2you.rsyncbridge.data.FileMetaData
 import org.me2you.rsyncbridge.data.FileResult
 import org.me2you.rsyncbridge.data.SyncEvent
 import org.me2you.rsyncbridge.data.SyncJob
 import org.me2you.rsyncbridge.data.SyncMode
 import org.me2you.rsyncbridge.data.SyncStatus
+import org.me2you.rsyncbridge.logger.LogAppender
+import org.me2you.rsyncbridge.logger.logger
 import org.me2you.rsyncbridge.sync.FileManager
 import org.me2you.rsyncbridge.sync.SyncService
 import org.slf4j.Logger

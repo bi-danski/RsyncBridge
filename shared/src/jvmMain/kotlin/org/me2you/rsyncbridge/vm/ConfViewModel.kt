@@ -4,10 +4,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
-import org.me2you.rsyncbridge.core.datastore.PreferenceRepo
-import org.me2you.rsyncbridge.core.utils.logger
 import org.me2you.rsyncbridge.data.ProxyConfig
 import org.me2you.rsyncbridge.data.SshConfig
+import org.me2you.rsyncbridge.datastore.PreferenceRepo
+import org.me2you.rsyncbridge.logger.logger
 
 
 class ConfViewModel(private val syncPrefs: PreferenceRepo) : ViewModel() {
@@ -46,7 +46,7 @@ class ConfViewModel(private val syncPrefs: PreferenceRepo) : ViewModel() {
     suspend fun onSaveConfigs(sshConfig: SshConfig, proxyConfig: ProxyConfig) {
         try {
             syncPrefs.updateSSHPreferences { sshConfig.toSSHPreferences() }
-            syncPrefs.updateIproxyPreferences { proxyConfig.toIProxyPreferences() }
+            syncPrefs.updateIProxyPreferences { proxyConfig.toIProxyPreferences() }
         } catch (ex: Exception) {
             logger().error(ex.message ?: ex.localizedMessage)
         }

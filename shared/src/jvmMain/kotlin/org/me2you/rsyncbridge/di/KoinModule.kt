@@ -14,9 +14,9 @@ import org.koin.dsl.module
 import org.koin.dsl.onClose
 import org.me2you.rsyncbridge.core.crypto.CryptoGCM
 import org.me2you.rsyncbridge.core.crypto.KeyRingProvider
-import org.me2you.rsyncbridge.core.datastore.PreferenceRepo
-import org.me2you.rsyncbridge.core.datastore.PreferenceSerializer
-import org.me2you.rsyncbridge.data.SyncPreferences
+import org.me2you.rsyncbridge.datastore.PreferenceRepo
+import org.me2you.rsyncbridge.core.serializer.PreferenceSerializer
+import org.me2you.rsyncbridge.datastore.SyncPreferences
 import org.me2you.rsyncbridge.sync.FileManager
 import org.me2you.rsyncbridge.sync.IProxyService
 import org.me2you.rsyncbridge.sync.SSHService
@@ -86,7 +86,7 @@ object KoinModule {
                 syncPrefs = get(),
                 koinScope = get()
             )
-        } onClose { iProxy -> iProxy?.stopIproxy() }
+        } onClose { iProxy -> iProxy?.stopIProxy() }
 
         viewModelOf(::RootViewModel)
         viewModelOf(::ConfViewModel)

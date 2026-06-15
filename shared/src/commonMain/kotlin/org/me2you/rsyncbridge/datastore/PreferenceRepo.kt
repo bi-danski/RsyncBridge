@@ -1,4 +1,4 @@
-package org.me2you.rsyncbridge.core.datastore
+package org.me2you.rsyncbridge.datastore
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.IOException
@@ -9,11 +9,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import org.me2you.rsyncbridge.core.utils.logger
-import org.me2you.rsyncbridge.data.IProxyPreferences
-import org.me2you.rsyncbridge.data.SSHPreferences
-import org.me2you.rsyncbridge.data.SyncPreferences
-
+import org.me2you.rsyncbridge.logger.logger
 
 class PreferenceRepo(
     private val dataStore: DataStore<SyncPreferences>,
@@ -51,7 +47,7 @@ class PreferenceRepo(
         } catch (ex: Exception){ logger().error("${this@PreferenceRepo} :: ${ex.message}") }
     }
 
-    suspend fun updateIproxyPreferences(transform: (IProxyPreferences) -> IProxyPreferences){
+    suspend fun updateIProxyPreferences(transform: (IProxyPreferences) -> IProxyPreferences){
         try {
             updateSyncPreferences {
                 it.copy(iProxyPrefs = transform(it.iProxyPrefs))

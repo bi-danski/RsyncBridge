@@ -3,7 +3,7 @@ package org.me2you.rsyncbridge.core.crypto
 import com.github.javakeyring.BackendNotSupportedException
 import com.github.javakeyring.Keyring
 import com.github.javakeyring.PasswordAccessException
-import org.me2you.rsyncbridge.core.utils.logger
+import org.me2you.rsyncbridge.logger.logger
 import java.io.File
 import java.security.SecureRandom
 import java.util.Base64

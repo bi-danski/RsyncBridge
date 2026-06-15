@@ -6,9 +6,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
-import org.me2you.rsyncbridge.core.datastore.PreferenceRepo
 import org.me2you.rsyncbridge.core.utils.BinUtil
-import org.me2you.rsyncbridge.core.utils.logger
+import org.me2you.rsyncbridge.datastore.PreferenceRepo
+import org.me2you.rsyncbridge.logger.logger
 import java.io.File
 import java.util.concurrent.TimeUnit
 
@@ -28,7 +28,7 @@ class IProxyService(
 
     fun isiProxyConnected(): Boolean = process?.isAlive == true
 
-    fun startIproxy() {
+    fun startIProxy() {
         if (isiProxyConnected()) {
             logger().warn { "iProxy process already running" }
             return
@@ -46,12 +46,12 @@ class IProxyService(
         }
     }
 
-    fun stopIproxy() {
+    fun stopIProxy() {
         serviceJob?.cancel()
         stopSync()
     }
 
-    fun monitorConnection() = callbackFlow {
+    fun monitorIProxyConnection() = callbackFlow {
         val currentProcess = process
         if (currentProcess == null || !currentProcess.isAlive) {
             trySend(false)
@@ -80,8 +80,7 @@ class IProxyService(
     }
 
     private fun buildIProxyCmd(): List<String> {
-        val iproxyBinary = getIProxyBinPath()
-        return listOf(iproxyBinary) +
+        return listOf(getIProxyBinPath()) +
                 syncPrefs.iProxyConfig.value.args +
                 syncPrefs.iProxyConfig.value.localPort.toString() +
                 syncPrefs.iProxyConfig.value.remotePort.toString()

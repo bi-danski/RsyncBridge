@@ -4,8 +4,8 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import net.schmizz.sshj.SSHClient
 import net.schmizz.sshj.transport.verification.PromiscuousVerifier
-import org.me2you.rsyncbridge.core.datastore.PreferenceRepo
-import org.me2you.rsyncbridge.core.utils.logger
+import org.me2you.rsyncbridge.datastore.PreferenceRepo
+import org.me2you.rsyncbridge.logger.logger
 
 class SSHService(
     private val sshClient: SSHClient,
@@ -44,7 +44,7 @@ class SSHService(
         } catch (ex: Exception) { logger().error("SSH Disconnect Error: ${ex.message}") }
     }
 
-    fun monitorConnection() = callbackFlow {
+    fun monitorSshConnection() = callbackFlow {
         try {
             if (!sshClient.isConnected) {
                 trySend(false)

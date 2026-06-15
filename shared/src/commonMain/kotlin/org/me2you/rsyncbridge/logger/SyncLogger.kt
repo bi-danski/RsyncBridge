@@ -1,4 +1,4 @@
-package org.me2you.rsyncbridge.core.logger
+package org.me2you.rsyncbridge.logger
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

@@ -9,7 +9,7 @@ import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.me2you.rsyncbridge.di.KoinModule
 import rsyncbridge.shared.generated.resources.Res
-import rsyncbridge.shared.generated.resources.icon
+import rsyncbridge.shared.generated.resources.ic
 
 fun main() {
     startKoin {
@@ -24,10 +24,10 @@ fun main() {
                 exitApplication()
             },
             title = "RsyncBridge",
-            icon = painterResource(Res.drawable.icon),
+            icon = painterResource(Res.drawable.ic),
             state = rememberWindowState(width = 900.dp, height = 730.dp),
         ) {
-            JvmRoot()
+            RootJVM()
         }
     }
 }

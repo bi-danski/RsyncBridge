@@ -1,4 +1,4 @@
-package org.me2you.rsyncbridge.data
+package org.me2you.rsyncbridge.datastore
 
 import kotlinx.serialization.Serializable
 

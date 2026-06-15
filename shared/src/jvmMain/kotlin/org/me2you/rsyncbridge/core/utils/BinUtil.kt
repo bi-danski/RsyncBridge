@@ -1,5 +1,6 @@
 package org.me2you.rsyncbridge.core.utils
 
+import org.me2you.rsyncbridge.logger.logger
 import java.io.File
 import java.nio.file.Files
 
@@ -71,7 +72,6 @@ object BinUtil{
         for (path in searchDirs) {
             if (path != null && path.exists() && path.isFile) return path.absolutePath
         }
-
         return resourcesDir.absolutePath
     }
 }

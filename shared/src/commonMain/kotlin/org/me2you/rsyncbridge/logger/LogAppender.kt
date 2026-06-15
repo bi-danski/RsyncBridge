@@ -1,4 +1,4 @@
-package org.me2you.rsyncbridge.core.logger
+package org.me2you.rsyncbridge.logger
 
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder
 import ch.qos.logback.classic.spi.ILoggingEvent

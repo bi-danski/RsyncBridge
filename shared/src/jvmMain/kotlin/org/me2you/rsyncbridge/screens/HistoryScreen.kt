@@ -19,6 +19,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.me2you.rsyncbridge.data.SyncStatus
+import org.me2you.rsyncbridge.ui.components.SnackBar
 import org.me2you.rsyncbridge.ui.components.historyscreen.FilterChip
 import org.me2you.rsyncbridge.ui.components.historyscreen.HistoryCard
 import org.me2you.rsyncbridge.ui.state.HistoryFilter
@@ -50,7 +54,7 @@ fun HistoryScreen(syncViewModel: SyncViewModel) {
     val syncMode by syncViewModel.syncMode.collectAsStateWithLifecycle()
     var activeFilter by remember { mutableStateOf(HistoryFilter.All) }
     val listState = rememberLazyListState()
-
+    val hostState = remember { SnackbarHostState() }
     val filtered = remember(history.toList(), activeFilter) {
         when (activeFilter) {
             HistoryFilter.All -> history
@@ -60,94 +64,102 @@ fun HistoryScreen(syncViewModel: SyncViewModel) {
             HistoryFilter.Failed -> history.filter { it.status is SyncStatus.Failed }
         }
     }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(DeepCharcoal)
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(
+                hostState = hostState,
+                snackbar = { SnackBar(snackBarData = it) }
+            )
+        }
     ) {
-        LazyColumn(
-            state = listState,
-            contentPadding = PaddingValues(24.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(end = 12.dp)
+                .background(DeepCharcoal)
         ) {
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 10.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Column {
-                        Text(
-                            text = "History",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = TextPrimary,
-                            fontFamily = FontFamily.Monospace
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = "Transfer job log",
-                            fontSize = 12.sp,
-                            color = TextSecondary,
-                            fontFamily = FontFamily.Monospace
-                        )
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        HistoryFilter.entries.forEach { filter ->
-                            FilterChip(
-                                label = filter.name,
-                                active = activeFilter == filter,
-                                onClick = { activeFilter = filter }
+            LazyColumn(
+                state = listState,
+                contentPadding = PaddingValues(24.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(end = 12.dp)
+            ) {
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Column {
+                            Text(
+                                text = "History",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = TextPrimary,
+                                fontFamily = FontFamily.Monospace
                             )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "Transfer job log",
+                                fontSize = 12.sp,
+                                color = TextSecondary,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            HistoryFilter.entries.forEach { filter ->
+                                FilterChip(
+                                    label = filter.name,
+                                    active = activeFilter == filter,
+                                    onClick = { activeFilter = filter }
+                                )
+                            }
                         }
                     }
                 }
-            }
 
-            if (filtered.isEmpty()) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "No transfers found.",
-                            fontSize = 13.sp,
-                            color = C9,
-                            fontFamily = FontFamily.Monospace
+                if (filtered.isEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "No transfers found.",
+                                fontSize = 13.sp,
+                                color = C9,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+                    }
+                } else {
+                    items(filtered) { job ->
+                        HistoryCard(
+                            job = job,
+                            mode = syncMode
                         )
                     }
                 }
-            } else {
-                items(filtered) { job ->
-                    HistoryCard(
-                        job = job,
-                        mode = syncMode
-                    )
-                }
             }
-        }
 
-        VerticalScrollbar(
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .fillMaxHeight()
-                .padding(vertical = 4.dp, horizontal = 2.dp),
-            adapter = rememberScrollbarAdapter(scrollState = listState),
-            style = defaultScrollbarStyle().copy(
-                unhoverColor = TextSecondary.copy(alpha = 0.3f),
-                hoverColor = ActionGreen.copy(alpha = 0.4f),
-                thickness = 8.dp,
-                shape = MaterialTheme.shapes.small
+            VerticalScrollbar(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .fillMaxHeight()
+                    .padding(vertical = 4.dp, horizontal = 2.dp),
+                adapter = rememberScrollbarAdapter(scrollState = listState),
+                style = defaultScrollbarStyle().copy(
+                    unhoverColor = TextSecondary.copy(alpha = 0.3f),
+                    hoverColor = ActionGreen.copy(alpha = 0.4f),
+                    thickness = 8.dp,
+                    shape = MaterialTheme.shapes.small
+                )
             )
-        )
+        }
     }
 }

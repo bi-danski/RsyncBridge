@@ -8,8 +8,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.isActive
-import org.me2you.rsyncbridge.core.datastore.PreferenceRepo
-import org.me2you.rsyncbridge.core.utils.logger
+import org.me2you.rsyncbridge.datastore.PreferenceRepo
+import org.me2you.rsyncbridge.logger.logger
 import org.me2you.rsyncbridge.data.SyncEvent
 import org.me2you.rsyncbridge.data.SyncJob
 import org.me2you.rsyncbridge.data.SyncOptions

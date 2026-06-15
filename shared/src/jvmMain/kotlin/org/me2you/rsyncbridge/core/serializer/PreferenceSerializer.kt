@@ -1,4 +1,4 @@
-package org.me2you.rsyncbridge.core.datastore
+package org.me2you.rsyncbridge.core.serializer
 
 import androidx.datastore.core.CorruptionException
 import androidx.datastore.core.Serializer
@@ -7,8 +7,8 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import org.me2you.rsyncbridge.core.crypto.CryptoGCM
-import org.me2you.rsyncbridge.core.utils.logger
-import org.me2you.rsyncbridge.data.SyncPreferences
+import org.me2you.rsyncbridge.datastore.SyncPreferences
+import org.me2you.rsyncbridge.logger.logger
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
