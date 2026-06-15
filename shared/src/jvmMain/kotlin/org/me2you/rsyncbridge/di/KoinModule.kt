@@ -68,7 +68,7 @@ object KoinModule {
             )
         }
 
-        factory { SSHClient() }
+        single { SSHClient() }
 
         single { FileManager(sshClient = get()) }
 

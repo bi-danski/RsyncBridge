@@ -23,8 +23,6 @@ class SyncService(
     private val currentConfig get() = syncPrefs.sshConfig.value
     private val processRef = AtomicReference<Process?>(null)
 
-    fun cancel() { processRef.getAndSet(null)?.destroyForcibly() }
-
     private fun runSyncCmd(job: SyncJob, buildCommand: (SyncJob) -> List<String>): Flow<SyncEvent> {
         return flow {
             var process: Process? = null
@@ -84,6 +82,7 @@ class SyncService(
 
     fun runSync(job: SyncJob): Flow<SyncEvent> = runSyncCmd(job, ::buildRsyncCmd)
     fun runSynciOS(job: SyncJob): Flow<SyncEvent> = runSyncCmd(job, ::buildRsynciOSCmd)
+    fun cancel() { processRef.getAndSet(null)?.destroyForcibly() }
 
     private fun buildRsyncCmd(job: SyncJob): List<String> {
         return mutableListOf("sshpass", "-p", currentConfig.pass, "rsync", "-avP", "--info=progress2", "--stats")

@@ -17,20 +17,24 @@ class SSHService(
     fun triggerInit() {
         try {
             sshClient.addHostKeyVerifier(PromiscuousVerifier())
-//            sshClient.connection.keepAlive.keepAliveInterval = 5
-        } catch (ex: Exception) { logger().error("SSH Init Error: ${ex.message}") }
+        } catch (ex: Exception) {
+            logger().error("SSH Init Error: ${ex.message}")
+        }
     }
 
-    fun connect() {
-        try {
+    fun connect(): Boolean {
+        return try {
             sshClient.connect(sshConfig.host, sshConfig.port)
             sshClient.authPassword(sshConfig.user, sshConfig.pass)
+            true
         } catch (_: net.schmizz.sshj.userauth.UserAuthException) {
             logger().error("Invalid SSH Credentials. Check your SSH user and password configurations.")
             sshClient.disconnect()
+            false
         } catch (ex: Exception) {
             logger().error("SSH Connect Error: $ex")
-            sshClient.disconnect()
+            runCatching { sshClient.disconnect() }
+            false
         }
     }
 
@@ -45,19 +49,21 @@ class SSHService(
             if (!sshClient.isConnected) {
                 trySend(false)
                 close()
-                return@callbackFlow
+            } else {
+                trySend(true)
+                sshClient.transport.setDisconnectListener { reason, _ ->
+                    logger().info { "SSH Disconnect. Reason: $reason" }
+                    trySend(false)
+                    close()
+                }
             }
-            trySend(true)
+        } catch (ex: Exception) {
+            logger().error(ex.message ?: ex.localizedMessage)
+            close(ex)
+        }
 
-            sshClient.transport.setDisconnectListener { reason, _ ->
-                logger().info { "SSH Disconnect. Reason: $reason" }
-                trySend(false)
-                close()
-            }
-
-            awaitClose {
-                sshClient.transport.disconnectListener = null
-            }
-        } catch (ex: Exception){ logger().error(ex.message ?: ex.localizedMessage) }
+        awaitClose {
+            sshClient.transport.disconnectListener = null
+        }
     }
 }

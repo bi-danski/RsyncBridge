@@ -3,6 +3,7 @@ package org.me2you.rsyncbridge.vm
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +14,6 @@ import kotlinx.coroutines.launch
 import org.me2you.rsyncbridge.sync.IProxyService
 import org.me2you.rsyncbridge.sync.SSHService
 import kotlin.time.Duration.Companion.milliseconds
-
 
 class RootViewModel(
     private val iProxyService: IProxyService,
@@ -26,34 +26,45 @@ class RootViewModel(
     private val _isProxyConnected = MutableStateFlow(false)
     val isProxyConnected: StateFlow<Boolean> = _isProxyConnected.asStateFlow()
 
+    private var sshMonitorJob: Job? = null
+    private var proxyMonitorJob: Job? = null
+
     fun pairMyIOS() {
         viewModelScope.launch(Dispatchers.IO) {
-            iProxyService.startIproxy()
-            delay(550.milliseconds)
             sshService.triggerInit()
-            sshService.connect()
+            iProxyService.startIproxy()
+            delay(350.milliseconds)
 
-            launch(Dispatchers.Main) {
-                monitorConnection()
+            val connected = sshService.connect()
+            if (!connected) {
+                iProxyService.stopIproxy()
+                return@launch
             }
+            monitorConnection()
         }
     }
 
     fun unPairMyIOS() {
         viewModelScope.launch(Dispatchers.IO) {
+            sshMonitorJob?.cancel()
+            proxyMonitorJob?.cancel()
             sshService.disconnect()
             iProxyService.stopIproxy()
+            _isSshConnected.value = false
+            _isProxyConnected.value = false
         }
     }
 
-    private fun monitorConnection(){
-        iProxyService.monitorConnection()
+    private fun monitorConnection() {
+        sshMonitorJob?.cancel()
+        proxyMonitorJob?.cancel()
+
+        proxyMonitorJob = iProxyService.monitorConnection()
             .onEach { _isProxyConnected.value = it }
             .launchIn(viewModelScope)
 
-        sshService.monitorConnection()
+        sshMonitorJob = sshService.monitorConnection()
             .onEach { _isSshConnected.value = it }
             .launchIn(viewModelScope)
     }
-
 }

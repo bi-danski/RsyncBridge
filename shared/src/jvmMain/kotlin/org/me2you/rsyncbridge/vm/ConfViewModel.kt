@@ -47,9 +47,9 @@ class ConfViewModel(private val syncPrefs: PreferenceRepo) : ViewModel() {
         try {
             syncPrefs.updateSSHPreferences { sshConfig.toSSHPreferences() }
             syncPrefs.updateIproxyPreferences { proxyConfig.toIProxyPreferences() }
-
-            logger().imetii { "Configurations Saved. :: $sshConfig :: $proxyConfig" }
-        } catch (ex: Exception) { logger().error(ex.message ?: ex.localizedMessage) }
+        } catch (ex: Exception) {
+            logger().error(ex.message ?: ex.localizedMessage)
+        }
     }
 
     suspend fun onResetConfigs() {
@@ -57,6 +57,8 @@ class ConfViewModel(private val syncPrefs: PreferenceRepo) : ViewModel() {
             syncPrefs.clearAllPreferences()
 
             logger().imetii { "Configurations Reset To Default." }
-        } catch (ex: Exception) { logger().error(ex.message ?: ex.localizedMessage) }
+        } catch (ex: Exception) {
+            logger().error(ex.message ?: ex.localizedMessage)
+        }
     }
 }

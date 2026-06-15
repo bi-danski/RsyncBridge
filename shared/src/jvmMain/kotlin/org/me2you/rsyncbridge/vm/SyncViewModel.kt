@@ -54,16 +54,16 @@ class SyncViewModel(
                     it.start()
                     rootLogger.addAppender(it)
                 }
-        } else {
-            logger().warn { "SyncViewModel:: Logback not yet initialized, log appender not attached" }
-        }
+        } else logger().warn { "SyncViewModel:: Logback not yet initialized, log appender not attached" }
     }
 
     override fun onCleared() {
         super.onCleared()
         val rootLogger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)
         if (rootLogger is ch.qos.logback.classic.Logger) {
-            logAppender?.let { rootLogger.detachAppender(it) }
+            logAppender?.let {
+                rootLogger.detachAppender(it)
+            }
         }
     }
 
@@ -186,8 +186,5 @@ class SyncViewModel(
 
     fun onClear() { _syncJob.value = null }
 
-    suspend fun onBrowseIOS(path: String): FileResult {
-        return fileManager.browseIOS(path)
-
-    }
+    suspend fun onBrowseIOS(path: String): FileResult = fileManager.browseIOS(path)
 }

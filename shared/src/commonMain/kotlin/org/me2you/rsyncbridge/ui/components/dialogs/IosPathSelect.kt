@@ -110,9 +110,7 @@ fun IOSPathSelect(
                 colors = ButtonDefaults.buttonColors(containerColor = ActionGreen),
                 modifier = Modifier.padding(end = 12.dp)
             ) {
-                Text(
-                    text = "Select Path"
-                )
+                Text(text = "Select Path")
             }
 
             IconButton(onClick = { isSearchVisible = !isSearchVisible }) {
@@ -164,9 +162,7 @@ fun IOSPathSelect(
             )
         }
 
-        PathNavigator(currentPath) { newPath ->
-            currentPath = newPath
-        }
+        PathNavigator(currentPath) { newPath -> currentPath = newPath }
         HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
 
         Box(modifier = Modifier
