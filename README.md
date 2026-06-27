@@ -7,6 +7,7 @@ Built with Kotlin Multi-Platform + rsync.
 > **Features in Development:** Remote connection support for Linux, Mac & Windows.
 > Subject to change as it only supports local (USB) connection. 
 > Stability is semi-guaranteed, use for evaluation purposes.
+> Discontinued for now.
 
 ### Contribution
 Contributions are welcomed! Please open issues or pull requests.
