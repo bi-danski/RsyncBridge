@@ -11,9 +11,5 @@ Built with Kotlin Multi-Platform + rsync.
 ### Contribution
 Contributions are welcomed! Please open issues or pull requests.
 
-### License
-Project is licensed under the MIT License. See **LICENSE** for details.
-
-
 ### Reference Documentation
 [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
